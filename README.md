@@ -1,2 +1,2 @@
-# plugin.video.dramacool
-Kodi plugin for Dramacool website
+# plugin.video.kshows
+Kodi plugin for KShows website - korean shows and dramas
