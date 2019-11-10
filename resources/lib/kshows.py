@@ -11,7 +11,7 @@ import re
 import requests
 import json
 from bs4 import BeautifulSoup
-import resolveurl
+import resolver
 
 UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"
 
@@ -75,9 +75,7 @@ def extract_video_url(url):
                 dialog = xbmcgui.Dialog()
                 ret = dialog.select('Choose source', urlsFound.keys())
                 if ret >= 0:
-                    resolved = resolveurl.resolve(urlsFound.values()[ret])
-                    if resolved:
-                        return resolved                        
+                    return resolver.resolve_video_url(urlsFound.values()[ret])
     return url
 
 if __name__ == "__main__":
