@@ -48,12 +48,46 @@ def tryresolveurl(vid_url):
         return resolveurl_supervid(vid_url)
     elif 'mp4upload' in vid_url:
         return resolveurl_mp4(vid_url)
+    elif 'jawcloud' in vid_url:
+        return resolveurl_jawcloud(vid_url)
+    elif 'gcloud' in vid_url:
+        return resolveurl_gcloud(vid_url)
     else:
         ips = re.findall( r'[0-9]+(?:\.[0-9]+){3}', vid_url )
         if ips:
             return resolveurl_peertube(vid_url, ips[0])
 
     return False
+
+def resolveurl_gcloud(vid_url):
+    #web_pdb.set_trace()
+    headers = {
+    "origin": "https://gcloud.live",
+    "referer": vid_url,
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "x-requested-with": "XMLHttpRequest",
+    "user-agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.52 Safari/536.5",
+    "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+    }
+    response = requests.post(url = 'https://gcloud.live/api/source/' + vid_url.split("/")[-1], headers = headers)
+    metadata = response.json()
+    url = metadata['data'][-1]['file']
+    response = requests.get(url = url, allow_redirects=False)
+    return response.headers['Location']
+
+def resolveurl_jawcloud(vid_url):
+    req = urllib2.Request(vid_url)
+    resp = urllib2.urlopen(req)
+    doc = resp.read()
+    resp.close()
+    soup = BeautifulSoup(doc, from_encoding='utf-8')
+    source = soup.find("source")
+    
+    if source:
+        return source['src']
+    else:
+        return vid_url
 
 def resolveurl_mp4(vid_url):
     #web_pdb.set_trace()
@@ -172,22 +206,11 @@ def resolveurl_flashvid(vid_url):
     resp = urllib2.urlopen(req)
     doc = resp.read()
     resp.close()
-    soup = BeautifulSoup(doc, from_encoding='utf-8')
-    sources = soup.findAll("source")
-    soup = None
     
-    if sources:
-        urlsFound = {}
-        for source in sources:
-            datavideo = source['src'] 
-            if datavideo:
-                urlsFound[source['title']] = datavideo
-        if urlsFound:
-            dialog = xbmcgui.Dialog()
-            ret = dialog.select('Choose source', urlsFound.keys())
-            if ret >= 0:
-                return urlsFound.values()[ret]
-    return vid_url
+    m = re.search('aliholi\(\"(.+?)\"\);', doc)
+    if m and m.group(1):
+        response = requests.get(url = 'https://a3.flashvid.nl/'+ m.group(1) +'.php?xxx=marutv.com')
+        return response.text
 
 def resolveurl_xstreamcdn(vid_url):
     req = urllib2.Request(vid_url)
